@@ -1,0 +1,76 @@
+%% RBC Model File
+% This is a model file for the RBC model from Chapter 2
+% Understanding DSGE by Celso José Costa Junior
+
+!transition_variables
+
+    'Output' Y
+    'Investment' I,
+    'Consumption' C,	
+    'Interest Rate' R,
+    'Capital' K,
+	'Wage rate' W
+	'Labor' N
+    'Productivity' A
+   
+!transition_shocks
+
+    'Productivity Shock' Ea
+
+!parameters
+
+	'relative risk aversion coefficient' sigma
+	'marginal disutility of labor supply' phi
+	'capital share of income' alpha
+	'intertemporal discount factor' beta
+	'depreciation rate' delta
+	'autoregressive productivity parameter' rhoa
+	
+	'steady-state output' ystar
+	'steady-state consumption' cstar
+	'steady-state investment' istar
+	'steady-state wage rate' wstar
+	'steady-state rental rate' rstar
+	'steady-state price level' pstar
+	'steady-state capital stock' kstar
+	'steady-state labor supply' nstar
+   	
+!links
+	%steady-state equations
+	
+	rstar := pstar*((1/beta)-(1-delta));
+	wstar := (1-alpha)*(pstar^(1/(1-alpha)))*((alpha/rstar)^(alpha/(1-alpha)));
+	ystar := ((rstar/(rstar-delta*alpha))^(sigma/(sigma+phi)))	*(((1-alpha)^(-phi))*((wstar/pstar)^(1+phi)))^(1/(sigma+phi));
+	kstar := alpha*(ystar/rstar/pstar);
+	istar := delta*kstar;
+	cstar := ystar - istar;
+	nstar := (1-alpha)*(ystar/wstar/pstar);
+	
+!transition_equations
+	%Log-Linearized Equations
+	
+    % Labor Supply
+    sigma*C + phi*N = W ;
+	
+	%Euler Equation
+	(sigma/beta) * (C{1}-C) = rstar*R{1};
+	
+	%Law of Motion of Capital
+	K = (1-delta) * K{-1} + delta*I;
+	
+	%Production Function
+    Y = A + alpha*K{-1} + (1-alpha)*N;
+	
+	%Demand for Capital
+	R = Y - K{-1};
+	
+	%Demand for Labor
+	W = Y - N;
+	
+	%Equilibrium Condition (AS = AD)
+	ystar*Y = cstar*C + istar*I;
+	
+	%Productivity Function
+	A = rhoa * A{-1} + Ea;
+	
+	

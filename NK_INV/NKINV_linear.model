@@ -1,0 +1,138 @@
+%% New-Keynesian Model with Non-Ricardian Consumers and Investment Adj Costs
+% This is a model file for the NKPC model from Chapter 6
+% Understanding DSGE by Celso José Costa Junior
+
+!transition_variables
+
+    'Output' Y
+    'Investment' I
+    'Aggregate Consumption' C	
+    'Ricardian Consumption' CR	
+    'Non-Ricardian Consumption' CNR		
+    'Interest Rate' R
+    'Capital' K
+	'Wage rate' W
+	'Labor' N
+	'Ricardian Labor' NR
+	'Non-Ricardian Labor' NNR	
+	'Marginal Cost' MC
+	'Price Level' P
+	'Wage Inflation' PIW
+	'Price Inflation Rate' PI
+    'Productivity' A
+	'Lagrange Multiplier Ricardian Households' lambdaR
+	'Lagrange Multiplier Non-Ricardian Households' lambdaNR
+	'Tobins Q' Q
+	'Capital Utilization ' U
+
+!transition_shocks
+
+    'Productivity Shock' Ea
+
+!parameters
+
+	'relative risk aversion coefficient' sigma
+	'marginal disutility of labor supply' phi
+	'capital share of income' alpha
+	'intertemporal discount factor' beta
+	'depreciation rate' delta
+	'autoregressive productivity parameter' rhoa
+	'elasticity of substitution between wholesale goods' psi
+	'probability of keeping the price of its good fixed in the next period' theta
+	'elasticity of substitution between differentiated labor' psiW
+	'probability of keeping the wage fixed in the next period' thetaW
+	'habit persistence' phic
+	'Participation of Ricardian agents in consumption and labor' omegaR
+	'Sensitivity of investments in relation to adjustment cost' chi
+	'Sensitivity of cost of under-utilization of maximum installed capacity 1' Psi1
+	'Sensitivity of cost of under-utilization of maximum installed capacity 2' Psi2
+	
+!substitutions
+	%steady-state equations
+	
+	pstar := 1;
+	ustar := 1;
+	
+	rstar := $pstar$*((1/beta)-(1-delta));
+	
+	mcstar := ((psi-1)/psi)*(1-beta*theta)*$pstar$;
+	wstar := (1-alpha)*($mcstar$^(1/(1-alpha)))*((alpha/$rstar$)^(alpha/(1-alpha)));
+	ystar := (($rstar$/($rstar$-delta*alpha*$mcstar$))^(sigma/(sigma+phi)))
+	*((1-phic*beta)*((1-phic)^(-sigma))*(1-beta*thetaW)*((psiW-1)/psiW)*($wstar$/$pstar$)
+	*($wstar$/((1-alpha)*$mcstar$))^phi)^(1/(sigma+phi));
+	kstar := alpha*$mcstar$*($ystar$/$rstar$);
+	istar := delta*$kstar$;
+	cstar := $ystar$ - $istar$;
+	nstar := (1-alpha)*$mcstar$*($ystar$/$wstar$);
+	crstar := $cstar$;
+	cnrstar := $cstar$;
+	nrstar := $nstar$;
+	nnrstar := $nstar$;
+	lambdarstar := (1/$pstar$)*($crstar$^(-sigma))*((1-phic)^(-sigma))*(1-phic*beta);
+	lambdanrstar := (1/$pstar$)*($cnrstar$^(-sigma))*((1-phic)^(-sigma))*(1-phic*beta);
+	qstar := $pstar$*$lambdarstar$;
+	
+!transition_equations
+	%Log-Linearized Equations
+	
+	%1-Ricardian household Lagrangian
+	lambdaR = (sigma/((1-phic)*(1-phic*beta)))*(phic*beta*(CR{+1}-phic*CR)-(CR-phic*CR{-1}))-P;
+
+	%2-Phillips equation for Ricardian household wages
+	PIW = beta*PIW{+1}+((1-thetaW)*(1-beta*thetaW)/thetaW)*(NR-lambdaR-W);
+
+	%3-Gross wage inflation rate
+	PIW = W - W{-1};
+
+	%4-Tobin’s Q
+	($qstar$/beta)*Q = (1-delta)*$qstar$*Q{+1}+$lambdarstar$*$rstar$*$ustar$ * (lambdaR{+1}+R{+1}+U{+1})-$lambdarstar$*$pstar$*Psi1*$ustar$*U{+1};
+
+	%5-Demand for Installed Capacity
+	($rstar$/$pstar$)*(R-P) = Psi2*$ustar$*U;
+
+	%6-Demand for Investment
+	$lambdarstar$*$pstar$*(lambdaR+P)-$qstar$*Q+chi*$qstar$*(I-I{-1})=chi*beta*$qstar$*(I{+1}-I);
+
+	%7-Law of Motion of Capital
+	K = (1-delta)*K{-1} + delta*I;
+
+	%8-Non-Ricardian household Lagrangian
+	lambdaNR = (sigma/((1-phic)*(1-phic*beta)))
+	*(phic*beta*(CNR{+1}-phic*CNR)-(CNR-phic*CNR{-1}))-P;
+
+	%9-Phillips equation for non-Ricardian household wages
+	PIW = beta*PIW{+1}+((1-thetaW)*(1-beta*thetaW)/thetaW)*(NNR-lambdaNR-W);
+
+	%10-Budget constraint of the non-Ricardian household
+	P+CNR = W+NNR;
+
+	%11-Aggregate consumption
+	$cstar$*C = omegaR*$crstar$*CR + (1-omegaR)*$cnrstar$*CNR;
+
+	%12-Aggregate labor
+	$nstar$*N = omegaR*$nrstar$*NR + (1-omegaR)*$nnrstar$*NNR;
+
+	%13-Production function
+	Y = A + alpha*(U+K{-1}) + (1-alpha)*N;
+
+	%14-Demand for capital
+	U + K{-1} = Y - R;
+
+	%15-Demand for labor
+	N = Y - W;
+
+	%16-Marginal cost
+	MC = ((1-alpha)*W + alpha*R - A);
+
+	%17-Phillips Equation
+	PI = beta*PI{+1}+((1-theta)*(1-beta*theta)/theta)*(MC-P);
+
+	%18-Gross inflation rate
+	PI = P - P{-1};
+
+	%19-Equilibrium condition
+	$ystar$*Y = $cstar$*C + $istar$*I;
+
+	%20-Productivity shock
+	A = rhoa*A{-1} + Ea;
+		

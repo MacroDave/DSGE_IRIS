@@ -1,0 +1,286 @@
+%% New-Keynesian Model with Government and
+% Non-Ricardian Consumers and Investment Adj Costs and 
+% This is a model file for the NKPC model from Chapter 7
+% Understanding DSGE by Celso José Costa Junior
+
+!transition_variables
+
+    'Output' Y
+    'Private Investment' IP
+    'Public Investment' IG	
+    'Aggregate Consumption' C	
+    'Ricardian Consumption' CR	
+    'Non-Ricardian Consumption' CNR		
+	'Government Consumption' G
+    'Rental Rate of Capital' R
+	'Govt Bond Interest Rate ' RB
+    'Private Capital' KP
+	'Public Capital' KG
+	'Wage rate' W
+	'Labor' N
+	'Ricardian Labor' NR
+	'Non-Ricardian Labor' NNR	
+	'Marginal Cost' MC
+	'Price Level' P
+	'Wage Inflation' PIW
+	'Price Inflation Rate' PI
+    'Productivity' A
+	'Lagrange Multiplier Ricardian Households' lambdaR
+	'Lagrange Multiplier Non-Ricardian Households' lambdaNR
+	'Tobins Q' Q
+	'Capital Utilization ' U
+	'Taxes' T
+	'Transfers' TRANS
+	'Government Bonds' B
+	'Tax on Consumer Goods' tau_c
+	'Tax on investment goods' tau_k
+	'Tax on Labor' tau_l
+	'Monetary Authority Shock' Sm
+	'Fiscal Spending Shock' Sg 
+	'Fiscal Invesmtent Shock' Sig 
+	'Fiscal Transfer Shock' Strans 
+	'Consumption Tax Shock' Stau_c 
+	'Labor Tax Shock' Stau_l 
+	'Capital Tax Shock' Stau_k	
+
+	
+!transition_shocks
+
+    'Productivity Shock Std Dev' Ea
+	'Monetary Authority Shock Std Dev' Em
+	'Fiscal Spending Shock Std Dev' Eg 
+	'Fiscal Invesmtent Shock Std Dev' Eig 
+	'Fiscal Transfer Shock Std Dev' Etrans 
+	'Consumption Tax Shock Std Dev' Etau_c 
+	'Labor Tax Shock Std Dev' Etau_l 
+	'Capital Tax Shock Std Dev' Etau_k
+
+!parameters
+
+	'relative risk aversion coefficient' sigma
+	'marginal disutility of labor supply' phi
+	'intertemporal discount factor' beta
+	'depreciation rate' delta
+	'depreciation rate government capital' deltaG
+	'autoregressive productivity parameter' rhoa
+	'elasticity of substitution between wholesale goods' psi
+	'probability of keeping the price of its good fixed in the next period' theta
+	'elasticity of substitution between differentiated labor' psiW
+	'probability of keeping the wage fixed in the next period' thetaW
+	'habit persistence' phic
+	'Participation of Ricardian agents in consumption and labor' omegaR
+	'Sensitivity of investments in relation to adjustment cost' chi
+	'Sensitivity of cost of under-utilization of maximum installed capacity 1' Psi1
+	'Sensitivity of cost of under-utilization of maximum installed capacity 2' Psi2
+	'Elasticity of level of production in relation to private capital' alpha1
+	'Elasticity of level of production in relation to labor' alpha2
+	'Elasticity of level of production in relation to public capital' alpha3
+	
+	'Rate of tax on consumption in steady state' tau_css
+	'Rate of tax on labor in steady state' tau_lss
+	'Rate of tax on capital in steady state' tau_kss
+
+	'Interest Rate Persistence' gammaR
+	'Sensitivity of interest rate in relation to inflation' gammaPI
+	'Sensitivity of interest rate in relation to GDP' gammaY	
+
+	'Public spending persistence' gammaG
+	'Persistence of public investment' gammaIG
+	'Persistence of income transfer' gammaTRANS
+	'Persistence of tax on consumption' gammatau_c
+	'Persistence of tax on labor income' gammatau_l
+	'Persistence of tax on capital income' gammatau_k
+
+	'Public spending over debt' phiG 
+	'Public investment over debt' phiIG
+	'Income transfer over debt' phiTRANS
+	'Tax on consumption over debt' phitau_c
+	'Tax on labor income over debt' phitau_l
+	'Tax on capital income over debt' phitau_k
+
+	'autoregressive public spending parameter' rhoG 
+	'autoregressive public investment parameter' rhoIG 
+	'autoregressive public transfer parameter' rhoTRANS 
+	'autoregressive consumption tax parameter' rhotau_c 
+	'autoregressive labor tax parameter' rhotau_l 
+	'autoregressive capital tax parameter' rhotau_k 
+	'autoregressive monetary policy parameter' rhom
+
+!substitutions
+	%steady-state equations
+	
+	pstar := 1;
+	pistar := 1;
+	
+	ustar := 1;
+	rbstar := 1/(beta);
+	
+	phiB := 1;
+	phi_TRANS := 0.01;
+	phi_IG := 0.02;
+	
+	rstar := $pstar$*((1+tau_css)/(1-tau_kss))*((1/beta)-(1-delta));
+	
+	mcstar := ((psi-1)/psi)*(1-beta*theta)*$pstar$;
+	wstar := alpha2*(($mcstar$*0.2^alpha3)^(1/alpha2))*((alpha1/$rstar$)^(alpha1/alpha2));
+
+	A1 := ((1-phic*beta)*((1-phic)^(-sigma))*(1-beta*thetaW)*((psiW-1)/psiW)
+	*((1-tau_lss)/(1+tau_css))*($wstar$/$pstar$)*($wstar$/(alpha2*$mcstar$))^phi)^(1/sigma);
+	
+	A2 := ((($rstar$*($pstar$-tau_lss*(1-alpha1)*$mcstar$)-tau_kss*($rstar$-delta)
+	*alpha1*$mcstar$)/($pstar$*$rstar$*(1+tau_css)))-(delta*alpha1*$mcstar$/$rstar$)
+	-($phiB$/$pstar$)*((1/$rbstar$)-1)+$phi_TRANS$);
+	
+	ystar := ($A1$/$A2$)^(sigma/(sigma+phi));
+	
+	bstar := $phiB$*$ystar$;
+
+	nstar := alpha2*$mcstar$*($ystar$/$wstar$);
+	nrstar := $nstar$;
+	nnrstar := $nstar$;
+
+	kpstar := alpha1*$mcstar$*($ystar$/$rstar$);
+	ipstar := delta*$kpstar$;
+	igstar := $phi_IG$*$ystar$;
+	kgstar := $igstar$/deltaG;
+	cstar := (1/($ystar$^(phi/sigma)))*$A1$;
+	crstar := $cstar$;
+	cnrstar := $cstar$;
+	gstar := $ystar$ - $ipstar$ - $igstar$ - $cstar$;
+	transstar := phiTRANS*$ystar$;
+	tstar := $pstar$*$gstar$ + $pstar$*$igstar$ + $pstar$*$transstar$ - $bstar$*((1/$rbstar$)-1);
+	
+	lambdarstar := (($crstar$^(-sigma))*(1-phic*beta)*(1-phic)^(-sigma))/((1+tau_css)*$pstar$);
+	lambdanrstar := (($cnrstar$^(-sigma))*(1-phic*beta)*(1-phic)^(-sigma))/((1+tau_css)*$pstar$);
+	qstar := $lambdarstar$*$pstar$*(1+tau_css);
+	
+!transition_equations
+	%Log-Linearized Equations
+	
+	%1-Ricardian Lagrangian household
+	lambdaR + P + (tau_css/(1+tau_css))*tau_c = (sigma/((1-phic)
+	*(1-phic*beta)))*(phic*beta*(CR{+1}-CR)-(CR-CR{-1}));
+
+	%2-Phillips equation for Ricardian household wages
+	PIW = beta*PIW{+1}+((1-thetaW)*(1-beta*thetaW)/thetaW)
+	*(phi*NR-lambdaR+(tau_lss/(1-tau_lss))*tau_l);
+
+	%3-Gross wage inflations
+	PIW = W - W{-1};
+
+	%4-Ricardian household budget constraint
+	$pstar$*$crstar$*((P+CR)*(1+tau_css)+tau_css*tau_c) + $pstar$*$ipstar$*((P+IP)
+	*(1+tau_css)+tau_css*tau_c) + ($bstar$/$rbstar$)*(B-RB) = $wstar$*$nrstar$
+	*((W+NR)*(1-tau_lss)-tau_lss*tau_l)+$rstar$*$kpstar$*((R+KP{-1})
+	*(1-tau_kss)-tau_kss*tau_k) + $bstar$*B{-1} + omegaR*$transstar$*TRANS;		
+
+	%5-Tobin’s Q
+	($qstar$/beta)*Q = (1-delta)*$qstar$*Q{+1} + $lambdarstar$*$rstar$*$ustar$
+	*(1-tau_kss)*(lambdaR{+1}+R{+1}+U{+1}-(tau_kss/(1-tau_kss))
+	*tau_k{+1})-$lambdarstar$*$pstar$*$ustar$*Psi1*U{+1};
+	
+	%6-Demand for installed capacity
+	(1-tau_kss)*($rstar$/$pstar$)*(R-P-(tau_kss/(1-tau_kss))*tau_k)=Psi2*$ustar$*U;
+
+	%7-Demand for investments
+	(1+tau_css)*$lambdarstar$*$pstar$*(lambdaR+P+(tau_css/(1+tau_css))*tau_c)
+	-$qstar$*Q+chi*$qstar$*(IP-IP{-1})=chi*beta*$qstar$*(IP{+1}-IP);
+
+	%8-Law of motion of private capital
+	KP = (1-delta)*KP{-1} + delta*IP;
+
+	%9-Euler’s equation (Public bond)
+	lambdaR - RB = lambdaR{+1};
+
+	%10-Non-Ricardian household Lagrangian
+	lambdaNR + P + (tau_css/(1+tau_css))*tau_c
+	= (sigma/((1-phic)*(1-phic*beta)))*(phic*beta*(CNR{+1}-CNR)-(CNR-CNR{-1}));
+
+	%11-Phillips equation for non-Ricardian household wages
+	PIW = beta*PIW{+1}+((1-thetaW)*(1-beta*thetaW)/thetaW)
+	*(phi*NNR-lambdaNR+(tau_lss/(1-tau_lss))*tau_l);
+
+	%12-Aggregate consumption
+	$cstar$*C = omegaR*$crstar$*CR + (1-omegaR)*$cnrstar$*CNR;
+
+	%13-Aggregate labor
+	$nstar$*N = omegaR*$nrstar$*NR + (1-omegaR)*$nnrstar$*NNR;
+
+	%14-Production Function
+	Y = A + alpha1*(U+KP{-1}) + alpha2*N + alpha3*KG{-1};
+
+	%15- Problem of the firm trade-off (MRS=Relative price)
+	N - U - KP{-1} = R - W;
+
+	%16-Marginal Cost
+	MC = alpha2*W + alpha1*R - A - alpha3*KG{-1};
+
+	%17-Phillips Equation
+	PI = beta*PI{+1} + ((1-theta)*(1-beta*theta)/theta)*(MC-P);
+
+	%18-Gross Inflation Rate
+	PI{+1} = P{+1} - P;
+
+	%19-Government budget constraint
+	($bstar$/$rbstar$)*(B-RB)-$bstar$*B{-1} + $tstar$*T = $pstar$*$gstar$*(P+G)
+	+ $pstar$*$igstar$*(P+IG) + $pstar$*$transstar$*(P+TRANS);
+
+	%20-Government tax revenue
+	$tstar$*T = tau_css*$pstar$*($cstar$*(C+P+tau_c)+$ipstar$*(IP+P+tau_c))
+	+tau_lss*$wstar$*$nstar$*(W+N+tau_l)
+	+tau_kss*$kpstar$*($rstar$*(R+KP{-1}+tau_k)-delta*(KP{-1}+tau_k));
+
+	%21-Rule for the movement of public capital
+	KG = (1-deltaG)*KG{-1} + deltaG*IG;
+
+	%22-Rule for the movement of public spending
+	G = gammaG*G{-1} + (1-gammaG)*phiG*(B{-1}-Y{-1}-P{-1})+Sg;
+
+	%23-Rule for the movement of public investment
+	IG = gammaIG*IG{-1} + (1-gammaIG)*phiIG*(B{-1}-Y{-1}-P{-1})+Sig;
+
+	%24-Rule for the movement of transfer of income
+	TRANS = gammaTRANS*TRANS{-1} + (1-gammaTRANS)
+	*phiTRANS*(B{-1}-Y{-1}-P{-1})+Strans;
+
+	%25-Rule for the movement of tax on consumption
+	tau_c = gammatau_c*tau_c{-1} + (1-gammatau_c)
+	*phitau_c*(B{-1}-Y{-1}-P{-1})+Stau_c;
+
+	%26-Rule for the movement of tax on labor Income
+	tau_l = gammatau_l*tau_l{-1} + (1-gammatau_l)
+	*phitau_l*(B{-1}-Y{-1}-P{-1})+Stau_l;
+
+	%27-Rule for the movement of tax on consumption
+	tau_k = gammatau_k*tau_k{-1} + (1-gammatau_k)
+	*phitau_k*(B{-1}-Y{-1}-P{-1})+Stau_k;
+
+	%28-Taylor’s rule
+	RB = gammaR*RB{-1}+(1-gammaR)*(gammaPI*PI + gammaY*Y)+Sm;
+
+	%29-Equilibrim condition
+	$ystar$*Y = $cstar$*C + $ipstar$*IP + $igstar$*IG + $gstar$*G;
+
+	%30-Productivity shock
+	A = rhoa*A{-1} + Ea;
+	
+	%31 - Shock in Public Spending
+	Sg = rhoG*Sg{-1} + Eg;
+
+	%32 - Shock in Public Investment
+	Sig = rhoIG*Sig{-1} + Eig;
+
+	%33 - Shock in Transfer of Income
+	TRANS = rhoTRANS*Strans{-1} + Etrans;
+
+	%34 - Shock in tax on Consumption
+	Stau_c = rhotau_c*Stau_c{-1} - Etau_c;
+
+	%35 - Shock in tax on Labor Income
+	Stau_l = rhotau_l*Stau_l{-1} - Etau_l;
+
+	%36 - Shock in tax on Capital Income
+	Stau_k = rhotau_k*Stau_k{-1} - Etau_k;
+
+	%37- Monetary Shock
+	Sm = rhom*Sm{-1}-Em;
