@@ -18,7 +18,6 @@ m.beta = 0.985;
 m.delta = 0.025;
 m.rhoa = 0.95;
 m.Ea = 0.01;
-m.pstar = 1;
 
 disp('Parameter Databank from Model Object:');
 get(m, 'Parameters')
